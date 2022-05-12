@@ -5,6 +5,7 @@ export function App() {
   const [backendData, setBackendData] = useState<any[]>([]);
   const [displayData, setDisplayData] = useState<any[]>([]);
   const [openRepo, setOpenrepo] = useState<any[]>([]);
+  const [somethingWrong, setSomethingWrong] = useState(false);
 
   const filterLanguage = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -16,7 +17,12 @@ export function App() {
     setDisplayData(filteredArr);
   };
 
-  useEffect(() => {
+  const reloadData = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    fetchData();
+  };
+
+  function fetchData() {
     fetch('/repos')
       .then((response) => response.json())
       .then((data) => {
@@ -38,11 +44,15 @@ export function App() {
         data.reverse();
         setBackendData(data);
         setDisplayData(data);
-        console.log(data);
+        setSomethingWrong(false);
       })
       .catch((err) => {
-        console.log('???');
+        setSomethingWrong(true);
       });
+  }
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   return (
@@ -58,6 +68,7 @@ export function App() {
       </button>
       {displayData.length > 0 &&
         openRepo.length === 0 &&
+        !somethingWrong &&
         // eslint-disable-next-line array-callback-return
         displayData.map((item) => {
           return (
@@ -86,8 +97,16 @@ export function App() {
             </div>
           );
         })}
-      {displayData.length === 0 && openRepo.length === 0 && (
+      {displayData.length === 0 && openRepo.length === 0 && !somethingWrong && (
         <div>Loading...</div>
+      )}
+      {displayData.length === 0 && openRepo.length === 0 && somethingWrong && (
+        <div className="wrongLoad">
+          <div className="wrongMsg">Oops... Something went wrong!</div>
+          <button className="reloadBtn" onClick={reloadData}>
+            Reload Page
+          </button>
+        </div>
       )}
       {openRepo.length > 0 && (
         <div className="repoDetail">
